@@ -139,7 +139,7 @@
                 dishesHtml = `
                     <div class="restaurant-dishes-section">
                         <h4 class="restaurant-dishes-title">Added Dishes (${restaurantDishes.length})</h4>
-                        ${restaurantDishes.map(dish => {
+                        ${restaurantDishes.map((dish, dishIndex) => {
                             // Determine price category
                             let priceCategory = '';
                             if (dish.price) {
@@ -153,11 +153,18 @@
                             }
                             return `
                             <div class="dish-card">
-                                <div class="dish-image-wrapper">
-                                    ${dish.photo 
+                                <div class="dish-image-wrapper" style="position: relative;">
+                                    ${dish.photo
                                         ? `<img src="${dish.photo}" alt="${dish.name}" style="width: 100%; height: 100%; object-fit: cover;">`
                                         : `<div class="dish-image">${getCategoryEmoji(dish.category || 'food')}</div>`
                                     }
+                                    <div class="dish-photo-buttons">
+                                        <button class="dish-photo-btn" onclick="event.stopPropagation(); triggerDishPhotoCamera(${id}, ${dishIndex})" title="Take photo">📷</button>
+                                        <button class="dish-photo-btn" onclick="event.stopPropagation(); triggerDishPhotoGallery(${id}, ${dishIndex})" title="Choose from gallery">🖼️</button>
+                                        ${dish.photo ? `<button class="dish-photo-btn delete" onclick="event.stopPropagation(); deleteDishPhoto(${id}, ${dishIndex})" title="Remove photo">🗑️</button>` : ''}
+                                    </div>
+                                    <input type="file" id="dishPhotoCamera-${id}-${dishIndex}" class="photo-upload-input" accept="image/*" capture="environment" onchange="handleDishPhotoUpload(event, ${id}, ${dishIndex})">
+                                    <input type="file" id="dishPhotoGallery-${id}-${dishIndex}" class="photo-upload-input" accept="image/*" onchange="handleDishPhotoUpload(event, ${id}, ${dishIndex})">
                                 </div>
                                 <div class="dish-info">
                                     <div class="dish-name">${dish.name}</div>
@@ -165,7 +172,7 @@
                                         ${dish.category ? `<div class="dish-meta-item">${getCategoryEmoji(dish.category)} ${dish.category}</div>` : ''}
                                         ${dish.subcategory ? `<div class="dish-meta-item">› ${dish.subcategory}</div>` : ''}
                                     </div>
-                                    <div class="dish-description">${dish.notes || 'No notes'}</div>
+                                    <div class="dish-description">${dish.notes || dish.comment || 'No notes'}</div>
                                     <div class="dish-footer">
                                         <div class="dish-price-info">
                                             <span class="dish-price-label">Price:</span>
@@ -175,7 +182,7 @@
                                         <div class="dish-rating">
                                             <span class="dish-rating-label">Rating:</span>
                                             <span class="dish-rating-emoji">⭐</span>
-                                            <span>${dish.foodRating || 0}/5</span>
+                                            <span>${dish.foodRating || dish.rating || 0}/5</span>
                                         </div>
                                     </div>
                                 </div>

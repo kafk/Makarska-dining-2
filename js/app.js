@@ -2754,6 +2754,127 @@
             }
         }
 
+        // ============================================
+        // DISH PHOTO UPLOAD FUNCTIONS
+        // ============================================
+
+        let pendingDishPhotoRestaurantId = null;
+        let pendingDishPhotoIndex = null;
+
+        function triggerDishPhotoCamera(restaurantId, dishIndex) {
+            const input = document.getElementById(`dishPhotoCamera-${restaurantId}-${dishIndex}`);
+            if (input) input.click();
+        }
+
+        function triggerDishPhotoGallery(restaurantId, dishIndex) {
+            const input = document.getElementById(`dishPhotoGallery-${restaurantId}-${dishIndex}`);
+            if (input) input.click();
+        }
+
+        function handleDishPhotoUpload(event, restaurantId, dishIndex) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            pendingDishPhotoRestaurantId = restaurantId;
+            pendingDishPhotoIndex = dishIndex;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                // Compress and save directly (skip crop modal for simplicity)
+                compressDishPhoto(e.target.result, 800, 0.7, function(compressedImage) {
+                    saveDishPhoto(compressedImage);
+                });
+            };
+            reader.readAsDataURL(file);
+
+            // Reset input
+            event.target.value = '';
+        }
+
+        function compressDishPhoto(dataUrl, maxWidth, quality, callback) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+
+                if (width > maxWidth) {
+                    height = (height * maxWidth) / width;
+                    width = maxWidth;
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                const compressed = canvas.toDataURL('image/jpeg', quality);
+                callback(compressed);
+            };
+            img.src = dataUrl;
+        }
+
+        function saveDishPhoto(imageData) {
+            if (pendingDishPhotoRestaurantId === null || pendingDishPhotoIndex === null) {
+                console.error('No pending dish photo data');
+                return;
+            }
+
+            const restaurant = restaurants.find(r => r.id === pendingDishPhotoRestaurantId);
+            if (!restaurant || !restaurant.foodItems || !restaurant.foodItems[pendingDishPhotoIndex]) {
+                alert('Error: Dish not found');
+                return;
+            }
+
+            // Add photo to the dish
+            restaurant.foodItems[pendingDishPhotoIndex].photo = imageData;
+
+            // Save to localStorage
+            try {
+                localStorage.setItem('restaurants', JSON.stringify(restaurants));
+                // Sync to Firestore if available
+                if (typeof saveRestaurantToFirestore === 'function') {
+                    saveRestaurantToFirestore(restaurant);
+                }
+            } catch (e) {
+                alert('Storage full! Try deleting some photos first.');
+                delete restaurant.foodItems[pendingDishPhotoIndex].photo;
+                return;
+            }
+
+            // Refresh view
+            viewRestaurantWithDishes(pendingDishPhotoRestaurantId);
+
+            // Reset pending data
+            pendingDishPhotoRestaurantId = null;
+            pendingDishPhotoIndex = null;
+        }
+
+        function deleteDishPhoto(restaurantId, dishIndex) {
+            if (!confirm('Delete this dish photo?')) return;
+
+            const restaurant = restaurants.find(r => r.id === restaurantId);
+            if (!restaurant || !restaurant.foodItems || !restaurant.foodItems[dishIndex]) {
+                alert('Error: Dish not found');
+                return;
+            }
+
+            // Remove photo from the dish
+            delete restaurant.foodItems[dishIndex].photo;
+
+            // Save to localStorage
+            localStorage.setItem('restaurants', JSON.stringify(restaurants));
+
+            // Sync to Firestore if available
+            if (typeof saveRestaurantToFirestore === 'function') {
+                saveRestaurantToFirestore(restaurant);
+            }
+
+            // Refresh view
+            viewRestaurantWithDishes(restaurantId);
+        }
+
         // Show login screen if not logged in
         setTimeout(function() {
             if (!currentUser) {
