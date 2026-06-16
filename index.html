@@ -18,7 +18,7 @@
             <div class="login-subtitle">Rate restaurants with friends</div>
         </div>
         <div class="login-buttons">
-            <div id="loginFormContainer">
+            <form id="loginFormContainer" onsubmit="event.preventDefault(); handleEmailLogin();">
                 <div class="login-form-group">
                     <input type="text" id="loginUsername" class="login-input" placeholder="Username" autocomplete="username">
                 </div>
@@ -26,15 +26,15 @@
                     <input type="password" id="loginPassword" class="login-input" placeholder="Password" autocomplete="current-password">
                 </div>
                 <div id="loginError" class="login-error"></div>
-                <button class="login-btn login-btn-primary" onclick="handleEmailLogin()">
+                <button type="submit" class="login-btn login-btn-primary">
                     Sign In
                 </button>
                 <div class="login-divider">or</div>
-                <button class="login-btn login-btn-secondary" onclick="showRegisterForm()">
+                <button type="button" class="login-btn login-btn-secondary" onclick="showRegisterForm()">
                     Create Account
                 </button>
-            </div>
-            <div id="registerFormContainer" style="display: none;">
+            </form>
+            <form id="registerFormContainer" style="display: none;" onsubmit="event.preventDefault(); handleRegister();">
                 <div class="login-form-group">
                     <input type="text" id="registerUsername" class="login-input" placeholder="Username" autocomplete="username">
                 </div>
@@ -45,14 +45,14 @@
                     <input type="password" id="registerPasswordConfirm" class="login-input" placeholder="Confirm Password" autocomplete="new-password">
                 </div>
                 <div id="registerError" class="login-error"></div>
-                <button class="login-btn login-btn-primary" onclick="handleRegister()">
+                <button type="submit" class="login-btn login-btn-primary">
                     Create Account
                 </button>
                 <div class="login-divider">or</div>
-                <button class="login-btn login-btn-secondary" onclick="showLoginForm()">
+                <button type="button" class="login-btn login-btn-secondary" onclick="showLoginForm()">
                     Back to Sign In
                 </button>
-            </div>
+            </form>
         </div>
     </div>
 

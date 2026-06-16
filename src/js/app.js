@@ -2443,7 +2443,7 @@
             createdAt: '2024-01-01T00:00:00.000Z'
         };
 
-        // Initialize groups - only Darko & Jessica group
+        // Initialize groups - load from localStorage if exists, or set default
         function initializeGroups() {
             // Calculate places and ratings from restaurants
             const restaurantCount = restaurants.length;
@@ -2458,7 +2458,28 @@
             defaultGroup.places = restaurantCount;
             defaultGroup.ratings = totalRatings;
             
-            // Only keep Darko & Jessica group - clear any others
+            // Check if userGroups exists in localStorage
+            const localGroups = localStorage.getItem('userGroups');
+            if (localGroups) {
+                try {
+                    const parsed = JSON.parse(localGroups);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        // Ensure the default group stats are updated
+                        const defaultIdx = parsed.findIndex(g => g.id === defaultGroup.id);
+                        if (defaultIdx !== -1) {
+                            parsed[defaultIdx].places = restaurantCount;
+                            parsed[defaultIdx].ratings = totalRatings;
+                        } else {
+                            parsed.unshift(defaultGroup);
+                        }
+                        return parsed;
+                    }
+                } catch (e) {
+                    console.error('Error parsing userGroups from localStorage:', e);
+                }
+            }
+            
+            // Default initialization if nothing exists
             const groups = [defaultGroup];
             localStorage.setItem('userGroups', JSON.stringify(groups));
             
